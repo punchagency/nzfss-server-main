@@ -138,13 +138,12 @@ class UserService {
 
     async login(input: LoginInput, context: Context){
         const errorEmail = "Invalid email or password";
-        const emailInput = input.email
-        console.log(emailInput, "emailInput")
+        const emailInput = input.email.trim();
+        const passwordInput = input.password.trim();
         // await rateLimiter(30, 3, 'LOGIN', emailInput)(null, { email: input.email }, context, null);
 
         // Get user by email 
         const user =  await UserModel.findOne({email: emailInput}).lean();
-        console.log(user, "user in local")
 
         if(!user){
             throw new ApolloError(errorEmail)
@@ -152,7 +151,11 @@ class UserService {
 
         // validate the password 
 
-        const passwordIsValid = await bcrypt.compare(input.password, user.password)
+        // Some legacy records may use "$2y$" bcrypt prefix; normalize for compare compatibility.
+        const normalizedStoredHash = user.password.startsWith("$2y$")
+          ? user.password.replace("$2y$", "$2b$")
+          : user.password;
+        const passwordIsValid = await bcrypt.compare(passwordInput, normalizedStoredHash)
         if(!passwordIsValid){
             throw new ApolloError(errorEmail)
         }

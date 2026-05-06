@@ -1,11 +1,18 @@
 const mongoose = require('mongoose');
+const { config } = require('dotenv');
+const path = require('path');
 const { PointModel } = require('../src/schema/point.schema');
 const { EntrantModel } = require('../src/schema/entrants.schema');
+
+// Load environment variables
+config({ path: path.resolve(__dirname, '../.env') });
+
+const MONGODB_URI = process.env.MONGODB_STRING || process.env.MONGODB_URI || 'mongodb://localhost:27017/nzfss';
 
 async function checkMissingEntrants() {
     try {
         // Connect to MongoDB
-        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/nzfss');
+        await mongoose.connect(MONGODB_URI);
         console.log('Connected to MongoDB');
 
         // Get all points

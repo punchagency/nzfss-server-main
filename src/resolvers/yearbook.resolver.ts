@@ -9,6 +9,25 @@ import {
 } from "../schema/yearbook.schema";
 import { ApolloError } from "apollo-server";
 import uploadFile from "../utils/s3Upload";
+import {
+  YEARBOOK_MAX_FILE_SIZE_BYTES,
+  YEARBOOK_MAX_FILE_SIZE_MB,
+} from "../config/upload";
+
+function validateYearbookFileSize(base64DataUri: string) {
+  const base64Payload = base64DataUri.split(",")[1];
+
+  if (!base64Payload) {
+    throw new ApolloError("Invalid yearbook file format");
+  }
+
+  const fileSizeInBytes = Buffer.byteLength(base64Payload, "base64");
+  if (fileSizeInBytes > YEARBOOK_MAX_FILE_SIZE_BYTES) {
+    throw new ApolloError(
+      `Yearbook file exceeds ${YEARBOOK_MAX_FILE_SIZE_MB}MB limit`
+    );
+  }
+}
 
 @Resolver()
 export default class YearbookResolver {
@@ -29,6 +48,7 @@ export default class YearbookResolver {
       // Check if there is a file to upload
       let uploadedFileUrl = null;
       if (yearbook) {
+        validateYearbookFileSize(yearbook);
         // If the file is provided, we assume the file is a base64-encoded string
         uploadedFileUrl = await uploadFile(
           yearbook,
@@ -88,6 +108,7 @@ export default class YearbookResolver {
       // Check if there is a file to upload
       let uploadedFileUrl = null;
       if (yearbook) {
+        validateYearbookFileSize(yearbook);
         // If the file is provided, we assume the file is a base64-encoded string
         uploadedFileUrl = await uploadFile(
           yearbook,

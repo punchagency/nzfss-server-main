@@ -6,8 +6,8 @@ const path = require('path');
 // Load environment variables
 config({ path: path.resolve(__dirname, '../.env') });
 
-// MongoDB connection string
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/nzfss';
+// MongoDB connection string (use server-style env var naming)
+const MONGODB_URI = process.env.MONGODB_STRING || process.env.MONGODB_URI || 'mongodb://localhost:27017/nzfss';
 
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
